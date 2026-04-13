@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { background: transparent; color: white; font-family: sans-serif; margin: 0; padding: 10px; }
+    .bonding-box {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 8px;
+      display: inline-block;
+      border-left: 5px solid #00ff00;
+    }
+    .val { font-size: 20px; font-weight: bold; }
+    .label { font-size: 10px; color: #aaa; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="bonding-box">
+    <div class="label">Bonding Status</div>
+    <div class="val"><span id="active-links">0</span> Connections</div>
+    <div id="network-names" style="font-size: 12px; color: #00ff00;">Checking...</div>
+  </div>
+
+  <script>
+    // Moblin API Integration
+    window.onMoblinMessage = (message) => {
+      if (message.type === 'stats') {
+        // Moblin sendet Details zu jeder Verbindung (WiFi, Cellular, etc.)
+        const links = message.stats.connections || [];
+        document.getElementById('active-links').innerText = links.length;
+        
+        // Zeigt die Namen der Netze an (z.B. WiFi + Cellular)
+        const names = links.map(l => l.name).join(' + ');
+        document.getElementById('network-names').innerText = names || 'No Connection';
+        
+        // Farbe anpassen
+        document.querySelector('.bonding-box').style.borderLeftColor = links.length > 1 ? '#00ff00' : '#ffcc00';
+      }
+    };
+  </script>
+</body>
+</html>
