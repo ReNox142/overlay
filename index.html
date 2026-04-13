@@ -1,68 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <link href="https://googleapis.com" rel="stylesheet">
+  <meta charset="utf-8" />
   <style>
-    body { background: transparent; color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 10px; overflow: hidden; }
-    .container {
-      background: rgba(0, 0, 0, 0.8); border-radius: 12px; padding: 15px;
-      width: 260px; border-bottom: 4px solid #1e90ff; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    body { margin: 0; background: transparent; font-family: sans-serif; }
+    .box {
+      position: fixed; top: 20px; left: 20px;
+      background: rgba(0,0,0,.55); color: white;
+      padding: 12px 16px; border-radius: 12px;
+      font-size: 20px;
     }
-    .header { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; }
-    .link-card {
-      background: rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 10px;
-      margin-bottom: 8px; border-left: 4px solid #00ff00; transition: all 0.3s;
-    }
-    .link-info { display: flex; justify-content: space-between; align-items: center; }
-    .link-name { font-weight: 700; font-size: 14px; }
-    .link-type { font-size: 10px; opacity: 0.7; background: #1e90ff; padding: 2px 6px; border-radius: 4px; }
-    .link-meta { font-size: 11px; margin-top: 5px; color: #00ff00; display: flex; justify-content: space-between; }
-    .offline { border-left-color: #ff4444 !important; opacity: 0.5; }
-    .offline .link-meta { color: #ff4444; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <span>Bonding Links</span>
-      <span id="total-mbps">0.0 Mbps</span>
-    </div>
-    <div id="links-list">
-      <div style="font-size: 12px; color: #666;">Warte auf Moblin API...</div>
-    </div>
-  </div>
-
+  <div class="box" id="bonding">Bonding: warte auf Daten …</div>
   <script>
-    window.onMoblinMessage = (message) => {
-      if (message.type === 'stats') {
-        const s = message.stats;
-        const conns = s.connections || [];
-        
-        // Gesamt-Bitrate Update
-        document.getElementById('total-mbps').innerText = (s.bitrate / 1000000).toFixed(1) + " Mbps";
+    const el = document.getElementById("bonding");
 
-        const list = document.getElementById('links-list');
-        if (conns.length === 0) {
-          list.innerHTML = '<div style="color:#ff4444; font-size:12px;">Keine Verbindung aktiv</div>';
-          return;
+    if (window.moblin) {
+      moblin.subscribe({}); // später gezielt Topic(s) setzen
+      moblin.onmessage = (message) => {
+        console.log(message);
+
+        // Hier musst du prüfen, wie die Daten bei dir konkret ankommen.
+        // Beispielhaft:
+        if (message.bonding) {
+          el.textContent =
+            `Wi-Fi: ${message.bonding.wifi_kbps} kbps | ` +
+            `Cellular: ${message.bonding.cellular_kbps} kbps`;
         }
-
-        // Jede Verbindung einzeln auflisten
-        list.innerHTML = conns.map(c => `
-          <div class="link-card ${!c.isConnected ? 'offline' : ''}">
-            <div class="link-info">
-              <span class="link-name">${c.name || 'Netzwerk'}</span>
-              <span class="link-type">${c.type || 'SIM'}</span>
-            </div>
-            <div class="link-meta">
-              <span>${c.isConnected ? 'Verbunden' : 'Getrennt'}</span>
-              <span>${c.bitrate ? (c.bitrate / 1000).toFixed(0) + ' kb/s' : ''}</span>
-            </div>
-          </div>
-        `).join('');
-      }
-    };
+      };
+    } else {
+      el.textContent = "Moblin API nicht verfügbar";
+    }
   </script>
 </body>
 </html>
